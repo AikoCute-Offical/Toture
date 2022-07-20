@@ -1,0 +1,11 @@
+{
+    "node_id": 4,
+    "webapi_url": "http://127.0.0.1:8080",
+    "webapi_key": "123456789123456789",
+    "check_interval": 10,
+    "submit_interval": 5,
+    "tls": {
+        "cert_path": "/root/.cert/cert.pem",
+        "key_path": "/root/.cert/key.pem"
+    }
+}
