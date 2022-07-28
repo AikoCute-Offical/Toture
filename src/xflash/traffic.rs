@@ -85,47 +85,45 @@ impl TrafficCenter {
 
             loop {
                 interval.tick().await;
-                tokio::task:: unconstrained(async {
-                    let mut store =  self.store.lock().await;
-                    if  !store.is_empty()  {
-                        let values = Vec::from_iter(store.values());
+                let mut store =  self.store.lock().await;
+                if  !store.is_empty()  {
+                    let values = Vec::from_iter(store.values());
 
-                        let ds: Vec<u64> = values.iter().map(|v|{
-                            v.d  as u64
-                        }).collect();
+                    let ds: Vec<u64> = values.iter().map(|v|{
+                        v.d  as u64
+                    }).collect();
 
-                        let ds_total = ds.iter().sum::<u64>();
-                        let ds_total_byte = Byte::from_bytes(ds_total as u128);
-                        info!("total down traffic: {}", ds_total_byte.get_appropriate_unit(true));
+                    let ds_total = ds.iter().sum::<u64>();
+                    let ds_total_byte = Byte::from_bytes(ds_total as u128);
+                    info!("total down traffic: {}", ds_total_byte.get_appropriate_unit(true));
 
-                        let us: Vec<u64> = values.iter().map(|v|{
-                            v.u  as u64
-                        }).collect();
-                        let us_total = us.iter().sum::<u64>();
-                        let us_total_byte = Byte::from_bytes(us_total as u128);
-                        info!("total up traffic: {}", us_total_byte.get_appropriate_unit(true));
+                    let us: Vec<u64> = values.iter().map(|v|{
+                        v.u  as u64
+                    }).collect();
+                    let us_total = us.iter().sum::<u64>();
+                    let us_total_byte = Byte::from_bytes(us_total as u128);
+                    info!("total up traffic: {}", us_total_byte.get_appropriate_unit(true));
 
-                        let response = match reqwest::Client::new().post(submit_with_parmas_url.as_str()).json(&values).send().await {
-                            Ok(resp) => resp,
-                            Err(e) => {
-                                warn!("traffic map submit error: {}", e);
-                                return;
-                            },
-                        };
+                    let response = match reqwest::Client::new().post(submit_with_parmas_url.as_str()).json(&values).send().await {
+                        Ok(resp) => resp,
+                        Err(e) => {
+                            warn!("traffic map submit error: {}", e);
+                            return;
+                        },
+                    };
 
-                        if response.status().is_success() {
-                            info!("traffic map submit success");
-                        } else {
-                            let response_status = response.status();
-                            let response_text = response.text().await;
-                            warn!("traffic map sumbmit error, status :{} , text : {}", response_status, response_text.unwrap());
-                        }
-                        store.clear();
-                        info!("traffic map submited");
+                    if response.status().is_success() {
+                        info!("traffic map submit success");
                     } else {
-                        info!("traffic map is empty");
+                        let response_status = response.status();
+                        let response_text = response.text().await;
+                        warn!("traffic map sumbmit error, status :{} , text : {}", response_status, response_text.unwrap());
                     }
-                }).await;
+                    store.clear();
+                    info!("traffic map submited");
+                } else {
+                    info!("traffic map is empty");
+                }
             }
         });
         Ok(())

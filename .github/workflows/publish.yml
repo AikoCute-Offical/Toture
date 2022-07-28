@@ -1,0 +1,74 @@
+name: Publish
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  build:
+    name: Build for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        name: [
+            linux,
+            macos
+        ]
+
+        include:
+          - name: linux
+            os: ubuntu-latest
+            artifact_name: target/release/torture
+            asset_name: torture-linux
+          - name: macos
+            os: macos-latest
+            artifact_name: target/release/torture
+            asset_name: torture-macos
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Rust Toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+        toolchain: stable
+
+    - name: Build
+      run: cargo build --release --locked
+
+    - name: Upload
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{ matrix.asset_name }}
+        path: ${{ matrix.artifact_name }}
+
+  publish:
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - name: Download Ubuntu Artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: torture-linux
+          path: ~/linux/
+
+      - name: Download MacOS Artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: torture-macos
+          path: ~/macos/
+
+      - name: Rename
+        run: |
+          mv ~/linux/torture ./torture-linux
+          mv ~/macos/torture ./torture-macos
+
+      - name: Release
+        uses: softprops/action-gh-release@v0.1.7
+        with:
+          files: |
+            torture-linux
+            torture-macos

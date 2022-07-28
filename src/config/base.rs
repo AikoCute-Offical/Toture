@@ -7,8 +7,9 @@ pub struct Config {
     pub node_id: u8,
     pub webapi_url: String,
     pub webapi_key: String,
-    pub check_interval: u64, 
+    pub check_interval: u64,
     pub submit_interval: u64,
+    pub task_timeout: u64,
     pub tls: Option<InboundTlsConfig>,
 }
 
@@ -19,6 +20,7 @@ pub struct InboundConfig {
     pub port: u16,
     // pub transport: Option<TransportProtocol>,
     pub tls: Option<InboundTlsConfig>,
+    pub task_timeout: u64,
 }
 
 

@@ -8,7 +8,7 @@ use std::io::Result;
 use tokio::net::TcpListener;
 use tokio::sync::mpsc::Sender;
 
-const DEFAULT_TASK_TIMEOUT: u64 = 300;
+const DEFAULT_TASK_TIMEOUT: u64 = 150;
 
 pub struct TcpServer {
     inbound_config: InboundConfig,
@@ -40,6 +40,7 @@ impl TcpServer {
             TcpHandler::init(),
         );
 
+        let task_timeout = if self.inbound_config.task_timeout > 0 {self.inbound_config.task_timeout} else {DEFAULT_TASK_TIMEOUT};
         loop {
             let (socket, addr) = match listener.accept().await {
                 Ok(s) => s,
@@ -56,7 +57,7 @@ impl TcpServer {
                 match acceptor.accept(socket, user_center).await {
                     Ok((request, inbound_stream, id)) => {
                         let res = tokio::time::timeout(
-                            std::time::Duration::from_secs(DEFAULT_TASK_TIMEOUT),
+                            std::time::Duration::from_secs(task_timeout),
                             async {
                                 match handler.dispatch(inbound_stream, request).await {
                                     Ok((u, d)) => {

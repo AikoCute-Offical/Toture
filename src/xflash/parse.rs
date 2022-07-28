@@ -21,7 +21,7 @@ pub async fn fetch_inbound_config(config: Config) -> Result<InboundConfig> {
 
     let server_port = match json_data.get("server_port") {
         Some(port) => port.as_u64().unwrap() as u16 ,
-        None => return Err(anyhow!("parse server port error ")) , 
+        None => return Err(anyhow!("parse server port error ")) ,
     };
 
     Ok(InboundConfig{
@@ -29,5 +29,6 @@ pub async fn fetch_inbound_config(config: Config) -> Result<InboundConfig> {
        address: String::from("0.0.0.0"),
        port: server_port ,
        tls: config.tls,
+       task_timeout: config.task_timeout
     })
 }

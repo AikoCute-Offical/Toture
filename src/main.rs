@@ -55,7 +55,6 @@ async fn main() -> Result<()> {
         }
     };
     USER_CENTER.start_fetch_users(config.clone()).await?;
-    print!("ssda");
     TRAFFIC_CENTER.start_submit(config.clone()).await?;
     let (traffic_sender, traffic_receiver) = TrafficCenter::generate_channel();
     TRAFFIC_CENTER.start_recevie_job(traffic_receiver).await?;

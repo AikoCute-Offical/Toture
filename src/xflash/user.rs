@@ -65,34 +65,32 @@ impl UserCenter {
             let mut interval = time::interval(Duration::from_secs(check_interval));
             loop {
                 interval.tick().await;
-                tokio::task:: unconstrained(async {
-                    let response  = match reqwest::Client::new()
-                        .get(users_with_parmas_url.as_str())
-                        .send()
-                        .await {
-                            Err(e) => {
-                                warn!("fetch users error: {}", e);
-                                return;
-                            },
-                            Ok(resp) => resp,
-                        };
-
-                    let result:UsersResult = match response.json().await {
+                let response  = match reqwest::Client::new()
+                    .get(users_with_parmas_url.as_str())
+                    .send()
+                    .await {
                         Err(e) => {
-                            warn!("users decode error: {}", e);
+                            warn!("fetch users error: {}", e);
                             return;
                         },
-                        Ok(result) => result,
+                        Ok(resp) => resp,
                     };
 
-                    let mut store = self.store.write().await;
-                    store.clear();
-                    for item in result.data.iter() {
-                        let  user_item = item.as_user_item();
-                        store.insert(user_item.secret, user_item.id);
-                    }
-                    info!("latest number of users: {}", store.len());
-                }).await;
+                let result:UsersResult = match response.json().await {
+                    Err(e) => {
+                        warn!("users decode error: {}", e);
+                        return;
+                    },
+                    Ok(result) => result,
+                };
+
+                let mut store = self.store.write().await;
+                store.clear();
+                for item in result.data.iter() {
+                    let  user_item = item.as_user_item();
+                    store.insert(user_item.secret, user_item.id);
+                }
+                info!("latest number of users: {}", store.len());
             }
         });
         Ok(())
